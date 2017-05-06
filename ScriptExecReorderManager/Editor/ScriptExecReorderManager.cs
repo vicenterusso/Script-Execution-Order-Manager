@@ -28,7 +28,6 @@ http://answers.unity3d.com/answers/242486/view.html
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
@@ -37,9 +36,10 @@ using UnityEngine;
 namespace com.vrusso
 {
 
-    
     public class ScriptExecReorderManager : EditorWindow
     {
+
+        private static ScriptExecReorderManager _editorWindow;
 
         private const string PHCLASSNAME = "ScriptExecReorderPlaceHolder"; // Placeholder classname
         private Vector2 _scrollPos;
@@ -79,8 +79,6 @@ namespace com.vrusso
             // Create a mirror of script exec order
             if (_sortedScripts.Count == 0) 
                 _sortedScripts = GetSortedDictionary();
-
-            
 
             CreateList();
 
@@ -579,9 +577,10 @@ namespace com.vrusso
         [MenuItem("Tools/Script Execution Order Manager")]
         static public void Init()
         {
-            var editorWindow = GetWindow(typeof(ScriptExecReorderManager)) as ScriptExecReorderManager;
-            editorWindow.autoRepaintOnSceneChange = true;
-            editorWindow.Show();
+            _editorWindow = GetWindow(typeof(ScriptExecReorderManager)) as ScriptExecReorderManager;
+            _editorWindow.autoRepaintOnSceneChange = true;
+            _editorWindow.titleContent = new GUIContent("Script Execution Order Manager");
+            _editorWindow.Show();
         }
 
     }
