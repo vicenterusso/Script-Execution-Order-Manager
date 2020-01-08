@@ -5,7 +5,20 @@ The Builtin Script Execution Order (Edit > Project Settings > Script Execution O
  * Drag to reorder;
  * Default time can be moved;
  * Search/Autocomplete
+ * Display Namespaces
  
+#### INSTALL FROM PACKAGE MANAGER (RECOMMENDED)
+
+Add to your `manifest.json` the following line:
+
+```
+{
+  "dependencies": {
+    "com.vrusso.scriptexecreordermanager": "https://github.com/vicenterusso/Script-Execution-Order-Manager.git",
+  },
+}
+```
+
 #### ASSET STORE LINK
  
 https://www.assetstore.unity3d.com/en/#!/content/89961
@@ -14,13 +27,7 @@ https://www.assetstore.unity3d.com/en/#!/content/89961
 
 Tools > Script Execution Order Manager
 
-#### DEMO
+#### SCREEN
 
-![](http://i.imgur.com/h7w8m0b.gif)
+![](https://i.imgur.com/s6QW3F8.png)
 
-
-#### TODO
-
- * Toggle to display namespaces
- * Sorting by Namespace and/or classes
- * Better EditorWindow visual
