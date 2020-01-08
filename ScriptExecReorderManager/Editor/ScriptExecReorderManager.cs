@@ -477,7 +477,7 @@ namespace com.vrusso
                     EditorGUILayout.BeginHorizontal();
                     if (GUILayout.Button("Write a review!"))
                     {
-                        Application.OpenURL("https://assetstore.unity.com/packages/tools/script-execution-order-manager-89961");
+                        Application.OpenURL("http://u3d.as/Qa3");
                     }
                     EditorGUILayout.EndHorizontal();
 
