@@ -296,7 +296,9 @@ namespace com.vrusso
             {
                 rect.y += 2;
                 
-                EditorGUI.LabelField(new Rect(rect.x, rect.y, rect.width * 0.75f, lheight), monoScript.GetClass().ToString());
+                var displayName = monoScript.GetClass().Name;
+                if(_displayNamespaces) displayName = monoScript.GetClass().ToString();
+                EditorGUI.LabelField(new Rect(rect.x, rect.y, rect.width * 0.75f, lheight), displayName);
 
                 if(_duplicatedValues != null && _duplicatedValues.Any() && DuplicatedValuesContains(_sortedScripts[monoScript]))
                 GUI.color = Color.red;
@@ -306,8 +308,8 @@ namespace com.vrusso
                 if (oldval == 0)
                     oldval = _sortedScripts[monoScript];
 
+            
                 _sortedScripts[monoScript] = EditorGUI.IntField(new Rect(rect.x + (rect.width * 0.75f), rect.y, rect.width * 0.18f, lheight), _sortedScripts[monoScript]);
-
                 
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -481,7 +483,6 @@ namespace com.vrusso
                     }
                     EditorGUILayout.EndHorizontal();
 
-
                     EditorGUILayout.BeginVertical("Box");
                     GUILayout.Label("Search feature doesn't filter namespaces");
                     _displayNamespaces = GUILayout.Toggle(_displayNamespaces, "Display Namespaces");
@@ -501,7 +502,8 @@ namespace com.vrusso
                         {
                             string nm = _typeList[i].Name;
                             string nmspace = _typeList[i].Namespace;
-                            string displayNameSpace = nmspace != null ? nmspace+"." : "";
+                            string displayNameSpace = "";
+                            if(_displayNamespaces) displayNameSpace = nmspace != null ? nmspace+"." : "";
                             if (nm.ToUpper().Contains(_filter.ToUpper()) && !ExecListContains(nm))
                             {
                                 GUILayout.BeginHorizontal();                                
