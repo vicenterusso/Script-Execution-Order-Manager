@@ -1,0 +1,20 @@
+{
+    "name": "com.vrusso.scriptexecreordermanager",
+    "version": "1.1.0",
+    "displayName": "ScriptExec Reorder Manager",
+    "description": "This is a small utility to help reordering scriptexec",
+    "unity": "2018.3",
+    "unityRelease": "0f2",
+    "dependencies": { },
+   "keywords": [
+      "script",
+      "exec",
+      "reorder"
+    ],
+    "author": {
+      "name": "Vicente Russo Neto",
+      "email": "vicente.russo@gmail.com",
+      "url": "http://www.vrusso.com.br"
+    }
+  }
+  
