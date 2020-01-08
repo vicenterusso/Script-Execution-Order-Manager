@@ -54,7 +54,7 @@ namespace com.vrusso
         }
 
         // Ignored namespaces
-        private static string[] IgnoredNamespaces = new [] { "UnityEngine.EventSystems" };
+        private static string[] IgnoredNamespaces = new [] { "UnityEngine", "UnityEditor" };
         private MonoScript[] _allMonoScriptsRuntime;
         private MonoScript _placeholderMonoScript;
         private MonoScript _editMonoScript;
@@ -65,15 +65,33 @@ namespace com.vrusso
         private List<MonoScript> _sortedScriptsIndexedList = new List<MonoScript>();
         private IEnumerable<IGrouping<int, KeyValuePair<MonoScript, int>>> _duplicatedValues;
         private ReorderableList _reordableExecOrderScripts;
+        private GUIStyle _buttonLeftAlign;
+        private bool _displayNamespaces;
 
         void OnEnable()
         {
 
+            _displayNamespaces = true;
+
             // List all C# class Types that are subclasses of Component
             _typeList.Clear();
             foreach (var type in GetAllSubTypes(typeof(MonoBehaviour)))
-            //foreach (var type in GetAllSubTypes(typeof(Component)))
+            {
+                bool ignoredType = false;
+                foreach (string ns in IgnoredNamespaces)
+                {
+                    if(type.Namespace != null && IsIgnoredNameSpace(type.Namespace, ns))
+                    {
+                        ignoredType = true;
+                        break;
+                    }
+                }
+
+                if(!ignoredType)
                     _typeList.Add(new NameAndType(type.Name, type.Namespace));
+                
+            }
+                
             _typeList.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
 
             // Create a mirror of script exec order
@@ -374,7 +392,9 @@ namespace com.vrusso
                 {
                     var currentOrder = MonoImporter.GetExecutionOrder(monoScript);
                     if (currentOrder != 0)
+                    {
                         execScripts.Add(monoScript, currentOrder);
+                    }
 
                     if (monoScript.GetClass().Name == PHCLASSNAME)
                         _placeholderMonoScript = monoScript;
@@ -382,52 +402,26 @@ namespace com.vrusso
                 }
             }
 
-            // Sort the list
-            var myList = execScripts.ToList();
-            myList.Sort((pair1, pair2) => pair1.Value.CompareTo(pair2.Value));
-
-            // Find the first positive index to insert "default time" divisor
-            var positiveIndex = 0;
-            for (var index = 0; index < myList.Count; index++)
-            {
-                KeyValuePair<MonoScript, int> entry = myList[index];
-                if (entry.Value > 0)
-                {
-                    positiveIndex = index;
-                    break;
-                }
-            }
 
             // Insert a Default time placeholder if positive execution order found
+            execScripts.Add(_placeholderMonoScript, 0); // add placeholder (default time)
+
+            // Sort
+            var sortedList = execScripts.ToList();
+            sortedList.Sort((pair1, pair2) => pair1.Value.CompareTo(pair2.Value));
+
             execScripts.Clear();
             _sortedScriptsIndexedList.Clear();
-            for (var index = 0; index < myList.Count; index++)
+            
+            for (var index = 0; index < sortedList.Count; index++)
             {
-                var entry = myList[index];
-                if (index == positiveIndex - 1)
-                {
-                    execScripts.Add(AddPlaceHolderToList(), 0);
-                }
-                else
-                {
-                    execScripts.Add(entry.Key, entry.Value);
-                    _sortedScriptsIndexedList.Add(entry.Key);
-                }
+                var entry = sortedList[index];                
+                execScripts.Add(entry.Key, entry.Value);
+                _sortedScriptsIndexedList.Add(entry.Key);
             }
 
-            if (positiveIndex == 0)
-                execScripts.Add(AddPlaceHolderToList(), 0);
-
-
             _initialSortedScripts = new Dictionary<MonoScript, int>(execScripts);
-
             return execScripts;
-        }
-
-        private MonoScript AddPlaceHolderToList()
-        {
-            _sortedScriptsIndexedList.Add(_placeholderMonoScript);
-            return _placeholderMonoScript;
         }
 
         private bool ExecListContains(string className)
@@ -459,6 +453,10 @@ namespace com.vrusso
 
         void OnGUI()
         {
+
+            _buttonLeftAlign = new GUIStyle(GUI.skin.button);
+            _buttonLeftAlign.alignment = TextAnchor.MiddleLeft;
+
             if (Event.current.type == EventType.KeyUp && Event.current.keyCode == KeyCode.Return)
             {
                 FindNewElementPosition(_editMonoScript, _editMonoScriptOldOrder, _sortedScripts[_editMonoScript]);
@@ -471,11 +469,28 @@ namespace com.vrusso
             GUILayout.BeginHorizontal();
             {
 
-                GUILayout.BeginVertical(GUILayout.Width(250));
-                {
+                GUILayout.BeginVertical(GUILayout.Width(Screen.width/2));
+                {        
 
-                    GUILayout.Space(8);
-                    GUILayout.Label("Search Component:", GUILayout.Width(250));
+                    GUILayout.Space(5);
+
+                    EditorGUILayout.BeginHorizontal();
+                    if (GUILayout.Button("Write a review!"))
+                    {
+                        Application.OpenURL("https://assetstore.unity.com/packages/tools/script-execution-order-manager-89961");
+                    }
+                    EditorGUILayout.EndHorizontal();
+
+
+                    EditorGUILayout.BeginVertical("Box");
+                    GUILayout.Label("Search feature doesn't filter namespaces");
+                    _displayNamespaces = GUILayout.Toggle(_displayNamespaces, "Display Namespaces");
+                    EditorGUILayout.EndHorizontal();
+
+                    
+                    GUILayout.Space(4);
+
+                    GUILayout.Label("Search:");
                     _filter = GUILayout.TextField(_filter);
                     GUILayout.Space(4);
 
@@ -486,12 +501,11 @@ namespace com.vrusso
                         {
                             string nm = _typeList[i].Name;
                             string nmspace = _typeList[i].Namespace;
+                            string displayNameSpace = nmspace != null ? nmspace+"." : "";
                             if (nm.ToUpper().Contains(_filter.ToUpper()) && !ExecListContains(nm))
                             {
-                                GUILayout.BeginHorizontal();
-                                // TODO: Display namespace with toggle
-                                GUILayout.Label(nm, GUILayout.Width(192));
-                                if (GUILayout.Button("->"))
+                                GUILayout.BeginHorizontal();                                
+                                if (GUILayout.Button(displayNameSpace+nm, _buttonLeftAlign))
                                 {
                                     for (int j = 0; j < _allMonoScriptsRuntime.Length; j++)
                                     {
@@ -513,7 +527,11 @@ namespace com.vrusso
                 }
                 GUILayout.EndVertical();
 
-                const int rightSidebarWidth = 400;
+                GUILayout.BeginVertical(GUILayout.Width(5));
+                GUILayout.Space(1);
+                GUILayout.EndVertical();
+
+                var rightSidebarWidth = Screen.width/2-20;
                 GUILayout.BeginVertical(GUILayout.Width(rightSidebarWidth));
                 {
 
@@ -574,12 +592,23 @@ namespace com.vrusso
             GUILayout.EndHorizontal();
         }
 
+        bool IsIgnoredNameSpace(string classNameSpace, string ignoredNamespace)
+        {
+            return classNameSpace.IndexOf(ignoredNamespace, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        void OnInspectorUpdate()
+        {
+            Repaint();
+        }
+
         [MenuItem("Tools/Script Execution Order Manager")]
         static public void Init()
         {
-            _editorWindow = GetWindow(typeof(ScriptExecReorderManager)) as ScriptExecReorderManager;
+            _editorWindow = GetWindow(typeof(ScriptExecReorderManager), true, "Script Execution Order Manager") as ScriptExecReorderManager;
             _editorWindow.autoRepaintOnSceneChange = true;
             _editorWindow.titleContent = new GUIContent("Script Execution Order Manager");
+            _editorWindow.minSize = new Vector2(200, 500);
             _editorWindow.Show();
         }
 
