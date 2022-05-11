@@ -21,7 +21,7 @@ Add to your `manifest.json` the following line:
 
 #### ASSET STORE LINK
  
-https://www.assetstore.unity3d.com/en/#!/content/89961
+https://assetstore.unity.com/packages/tools/utilities/script-execution-order-manager-89961
 
 #### USAGE
 
